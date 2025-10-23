@@ -4,15 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ff7feb58-9103-443c-a5e5-15c20bccac47" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/Gruppe2_Semesteroppgave_Python.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SemesterOppgaveGruppe2.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/Kart_Bergen.PNG" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/NedborX.csv" afterDir="false" />
+    <list default="true" id="ff7feb58-9103-443c-a5e5-15c20bccac47" name="Changes" comment="oppgave 1">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SemesterOppgaveGruppe2.py" beforeDir="false" afterPath="$PROJECT_DIR$/SemesterOppgaveGruppe2.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,6 +23,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "ElisaRumSolberg"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/ElisaRumSolberg/Gruppe2_Semesteroppgave_Python.git",
+    "accountId": "6b22715d-1ee6-40d5-893f-f2beff4d1a9e"
+  }
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8
 }</component>
@@ -70,6 +76,19 @@
       <option name="presentableId" value="Default" />
       <updated>1761137003439</updated>
     </task>
+    <task id="LOCAL-00001" summary="oppgave 1">
+      <option name="closed" value="true" />
+      <created>1761222721324</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1761222721324</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="oppgave 1" />
+    <option name="LAST_COMMIT_MESSAGE" value="oppgave 1" />
   </component>
 </project>

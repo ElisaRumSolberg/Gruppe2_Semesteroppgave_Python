@@ -11,9 +11,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import matplotlib.patheffects as pe  # tekst-outline for lesbarhet
-from matplotlib.path import Path     # til egendefinert marker
+from matplotlib.path import Path  # til egendefinert marker
 from matplotlib.markers import MarkerStyle  # stabil marker-normalisering
-from matplotlib.widgets import Button       # reset-knapp
+from matplotlib.widgets import Button  # reset-knapp
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
@@ -22,17 +22,18 @@ from sklearn.metrics import r2_score, mean_absolute_error
 
 # ---------- STIER / KONFIG ----------
 skript_mappe = os.path.dirname(os.path.abspath(__file__))
-data_sti  = os.path.join(skript_mappe, "data", "nedborX.csv")        # CSV: X,Y,Mnd,Nedbor
-bilde_sti = os.path.join(skript_mappe, "assets", "Bergen_Kart2.PNG") # kartbilde
+data_sti = os.path.join(skript_mappe, "data", "nedborX.csv")  # CSV: X,Y,Mnd,Nedbor
+bilde_sti = os.path.join(skript_mappe, "assets", "Bergen_Kart2.PNG")  # kartbilde
 
 # Kart-aksegrenser (samme som lærer)
 x_min, x_max = 0.0, 13.0
 y_min, y_max = 0.0, 10.0
-kart_extent  = (x_min, x_max, y_min, y_max)
+kart_extent = (x_min, x_max, y_min, y_max)
 
 # --- Basis for zoom-skala (lagres ved start) ---
 INIT_DX = x_max - x_min
 INIT_DY = y_max - y_min
+
 
 def gjeldende_zoom_skala(ax):
     """Returnerer skala = nåværende utsnitts-bredde/høyde i forhold til start (maks av x,y)."""
@@ -42,12 +43,14 @@ def gjeldende_zoom_skala(ax):
     dy = (cy1 - cy0) / INIT_DY
     return max(dx, dy)  # bruker maks for å holde proporsjonene pene
 
+
 # Fargeklasser – gul -> oransje -> rød (lys -> mørk)
-colors = ['#FEF08A',  # lys gul
-          '#FBBF24',  # gul-oransje
-          '#F97316',  # oransje
-          '#EF4444',  # rød
-          '#991B1B']  # mørk rød
+colors = ['#B3E5FC',  # lys gul
+          '#64B5F6',  # gul-oransje
+          '#3F51B5',  # oransje
+          '#7E57C2',  # rød
+          '#512DA8']  # mørk rød
+
 
 # ---------- HJELPEFUNKSJONER ----------
 def index_from_nedbor(x: float) -> int:
@@ -58,13 +61,16 @@ def index_from_nedbor(x: float) -> int:
     if x < 3200: return 3
     return 4
 
+
 def color_from_nedbor(nedbor: float) -> str:
     """Velg farge etter årsnedbør (mm)."""
     return colors[index_from_nedbor(nedbor)]
 
+
 def label_from_nedbor(nedbor: float) -> str:
     """Etikett i hundre mm (f.eks. 13 => 1300 mm/år)."""
     return str(int(nedbor / 100))
+
 
 def size_from_nedbor_series(nedbor_array, min_size=700, max_size=1500):
     """Skalerer symbolstørrelse etter verdi (mm) – robust mot ekstreme verdier."""
@@ -79,40 +85,44 @@ def size_from_nedbor_series(nedbor_array, min_size=700, max_size=1500):
     s = np.clip(s, 0, 1)
     return min_size + s * (max_size - min_size)
 
+
 def draw_label_and_ticks():
     """Setter x-aksens etiketter (måneder) på venstre plott."""
-    xlabels = ['J','F','M','A','M','J','J','A','S','O','N','D']
+    xlabels = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
     axGraph.set_xticks(np.linspace(1, 12, 12))
     axGraph.set_xticklabels(xlabels, fontsize=9)
     axGraph.set_ylabel("mm", fontsize=10)
 
-def regndraape_marker(scale: float = 1.0) -> MarkerStyle:
+
+def regndraape_marker(width: float = 1.35, height: float = 0.72) -> MarkerStyle:
     """
-    Estetisk regndråpe – mykere topp og spissere bunn.
-    Brukes som 'marker' i scatter.
+    Enli (width>1) ve kısa (height<1) regndråpe.
+    width  : yatay genişlik ölçeği
+    height : dikey yükseklik ölçeği
     """
+
     verts = np.array([
-        (0.00,  1.00),   # topp
-        (0.45,  0.40),
+        (0.00, 1.00),  # topp
+        (0.45, 0.30),
         (0.35, -0.30),
-        (0.00, -1.00),   # spiss
+        (0.00, -1.30),  # (spiss)
         (-0.35, -0.30),
-        (-0.45,  0.40),
-        (0.00,  1.00),   # tilbake til topp
-        (0.00,  1.00)    # ekstra punkt for CLOSEPOLY
-    ]) * float(scale)
+        (-0.45, 0.30),
+        (0.00, 1.0),  # igjen topp
+        (0.00, 1.00),  # CLOSEPOLY
+    ], dtype=float)
+
+    verts[:, 0] *= width
+    verts[:, 1] *= height
 
     codes = [
         Path.MOVETO,
-        Path.CURVE3,
-        Path.CURVE3,
-        Path.CURVE3,
-        Path.CURVE3,
-        Path.CURVE3,
-        Path.CURVE3,
-        Path.CLOSEPOLY
+        Path.CURVE3, Path.CURVE3, Path.CURVE3,
+        Path.CURVE3, Path.CURVE3, Path.CURVE3,
+        Path.CLOSEPOLY,
     ]
     return MarkerStyle(Path(verts, codes))
+
 
 # ---------- DATA / MODELL ----------
 # Les data trygt, gi vennlig feilmelding hvis fil mangler
@@ -131,32 +141,36 @@ if 'Mnd' not in df.columns and 'Month' in df.columns:
 # Hvis 'Mnd' er tekst (Jan,Feb,...) -> tall 1..12
 if 'Mnd' in df.columns and df['Mnd'].dtype == object:
     mnd_map = {
-        'J':1,'F':2,'M':3,'A':4,'MA':5,'JUN':6,'JUL':7,'AU':8,'S':9,'O':10,'N':11,'D':12,
-        'JAN':1,'FEB':2,'MAR':3,'APR':4,'MAY':5,'MAI':5,'JUN':6,'JUL':7,'AUG':8,
-        'SEP':9,'SEPT':9,'OCT':10,'OKT':10,'NOV':11,'DEC':12,'DES':12
+        'J': 1, 'F': 2, 'M': 3, 'A': 4, 'MA': 5, 'JUN': 6, 'JUL': 7, 'AU': 8, 'S': 9, 'O': 10, 'N': 11, 'D': 12,
+        'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'MAI': 5, 'JUN': 6, 'JUL': 7, 'AUG': 8,
+        'SEP': 9, 'SEPT': 9, 'OCT': 10, 'OKT': 10, 'NOV': 11, 'DEC': 12, 'DES': 12
     }
+
+
     def _to_num(v):
         s = str(v).strip().upper()
         if s.isdigit():
             return int(s)
         return mnd_map.get(s, None)
+
+
     df['Mnd'] = df['Mnd'].map(_to_num)
 
 # Sikkerhet: tall-typer
-for col in ['X','Y','Mnd','Nedbor']:
+for col in ['X', 'Y', 'Mnd', 'Nedbor']:
     if col in df.columns:
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
 # Sjekk kolonner og dropp NaN
-nødvendige = {"X","Y","Mnd","Nedbor"}
+nødvendige = {"X", "Y", "Mnd", "Nedbor"}
 mangler = nødvendige - set(df.columns)
 if mangler:
     raise ValueError(f"Mangler kolonner i CSV: {sorted(mangler)}  (fant: {list(df.columns)})")
-df = df.dropna(subset=['X','Y','Mnd','Nedbor'])
+df = df.dropna(subset=['X', 'Y', 'Mnd', 'Nedbor'])
 
 # Treningsdata: (X, Y, Mnd) -> Nedbor
 ns = df['Nedbor']
-X  = df.drop('Nedbor', axis=1)
+X = df.drop('Nedbor', axis=1)
 poly = PolynomialFeatures(degree=3)  # (Oppgave 5: kan gjøres variabel)
 X_poly = poly.fit_transform(X)
 X_train, X_test, Y_train, Y_test = train_test_split(
@@ -170,19 +184,19 @@ print(f"R-squared: {r2_score(Y_test, Y_pred):.2f}")
 print("mean_absolute_error (mnd):", mean_absolute_error(Y_test, Y_pred))
 
 # Aggregér årsnedbør per stasjon (for kart)
-df_year = df.groupby(['X','Y']).agg({'Nedbor':'sum'}).reset_index()
+df_year = df.groupby(['X', 'Y']).agg({'Nedbor': 'sum'}).reset_index()
 xr = df_year['X'].to_numpy()
 yr = df_year['Y'].to_numpy()
-nedbor_aar = df_year['Nedbor'].to_numpy()   # mm/år
-nedbor_mnd = nedbor_aar / 12.0              # mm/mnd (til størrelse)
-ColorList  = [color_from_nedbor(v) for v in nedbor_aar]
-SizeList   = size_from_nedbor_series(nedbor_mnd)
+nedbor_aar = df_year['Nedbor'].to_numpy()  # mm/år
+nedbor_mnd = nedbor_aar / 12.0  # mm/mnd (til størrelse)
+ColorList = [color_from_nedbor(v) for v in nedbor_aar]
+SizeList = size_from_nedbor_series(nedbor_mnd)
 
 # ---------- FIGUR / AKSER ----------
 plt.rcParams['figure.dpi'] = 120
 fig = plt.figure(figsize=(10.6, 4.6))
 axGraph = fig.add_axes((0.05, 0.10, 0.35, 0.82))
-axMap   = fig.add_axes((0.42, 0.07, 0.56, 0.86))
+axMap = fig.add_axes((0.42, 0.07, 0.56, 0.86))
 
 # Last kartbilde (lokal PNG)
 if not os.path.exists(bilde_sti):
@@ -200,6 +214,7 @@ axMap.set_ylim(y_min, y_max)
 fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
 axMap.set_title("Årsnedbør – Stor-Bergen", fontsize=11)
 axGraph.set_title("Nedbør per måned (klikk for estimat)", fontsize=11)
+
 
 # ---------- TEGNEFUNKSJONER ----------
 def tegn_kart():
@@ -219,40 +234,71 @@ def tegn_kart():
     # Dråpestørrelse skaleres etter zoom (innzooming ⇒ mindre s)
     eff_size = (SizeList * 1.6) * z
 
-    # --- VIKTIG: tegn én-én, slik at path_effects funker uten feil ---
+    # tegn én-én, slik at path_effects funker uten feil ---
     for i in range(len(xr)):
         axMap.scatter(
             [xr[i]], [yr[i]],
             c=[ColorList[i]],
             s=[eff_size[i]],
-            marker=regndraape_marker(),   # damla
+            marker=regndraape_marker(),  # drope
             edgecolor='white',
-            linewidth=1.0,
-            alpha=0.92,
-            zorder=3,
+            linewidth=0.5,
+            alpha=0.95,
+            zorder=2,
             path_effects=[
                 pe.withSimplePatchShadow(offset=(1.0, -1.0), alpha=0.35, rho=0.9),
                 pe.Normal()
             ]
         )
 
+        Steder = {
+            "Bergen": (6.73, 5.45),
+            "Askøy": (4.10, 7.20),
+            "Sotra": (3.80, 2.90),
+            "Fana": (8.20, 3.80),
+            "Arna": (8.70, 6.00),
+            "Åsane": (6.90, 6.60),
+            "Flesland": (7.55, 3.20),
+            "Os": (9.00, 2.70),
+            "Knarvik": (6.05, 9.30),
+            "Østerøy": (9.65, 8.70),
+            "Laksevåg": (5.75, 4.40),
+            "Agåtnes": (2.55, 5.40),
+
+        }
+        # --- steder ) ---
+        place_base_fs = 9  # starte font
+        place_fs = max(7, int(10 * z))
+        for name, (px, py) in Steder.items():
+            tt = axMap.text(
+                px, py, name,
+                ha="center", va="center",
+                fontsize=place_fs, color="black",
+                zorder=4, alpha=0.98,
+                clip_on=True
+            )
+
+            tt.set_path_effects([pe.withStroke(linewidth=1.0, foreground="white")])
+
     # Etiketter (hundre mm) – posisjon + font z'ye göre
-    base_lab_fs = 9
+    base_lab_fs = 10
     lab_fs = max(6, base_lab_fs * z)
-    dy = 0.12 * z
+    dy = 0.03 * z
 
     labels = [label_from_nedbor(n) for n in nedbor_aar]
     for i in range(len(xr)):
         t = axMap.text(xr[i], yr[i] - dy, labels[i],
-                       color='white', fontsize=lab_fs, ha='center', va='center', zorder=5)
+                       color='white', fontsize=lab_fs, ha='center', va='center', zorder=5,
+                       clip_on=True  )
         t.set_path_effects([pe.withStroke(linewidth=1.6, foreground='black')])
+
 
 def on_scroll(event):
     """Zoom med musehjul på kart-aksen (myk skalering)."""
     if event.inaxes != axMap:
         return
     # zoomfaktor: ut (opp) / inn (ned)
-    scale = 1.2 if event.button == 'up' else 1/1.2
+    scale = 1.2 if event.button == 'up' else 1 / 1.2
 
     # dagens grenser
     cur_xmin, cur_xmax = axMap.get_xlim()
@@ -268,14 +314,17 @@ def on_scroll(event):
     new_ymin, new_ymax = _scale(cur_ymin, cur_ymax, ydata)
 
     # klipp til globale grenser
-    new_xmin = max(x_min, new_xmin); new_xmax = min(x_max, new_xmax)
-    new_ymin = max(y_min, new_ymin); new_ymax = min(y_max, new_ymax)
+    new_xmin = max(x_min, new_xmin);
+    new_xmax = min(x_max, new_xmax)
+    new_ymin = max(y_min, new_ymin);
+    new_ymax = min(y_max, new_ymax)
 
     # unngå å flippe akser
     if new_xmax - new_xmin > 0.1 and new_ymax - new_ymin > 0.1:
         axMap.set_xlim(new_xmin, new_xmax)
         axMap.set_ylim(new_ymin, new_ymax)
         plt.draw()
+
 
 def on_click(event):
     """Klikk på kartet: prediker 12 måneder og tegn søyler + markering."""
@@ -287,12 +336,12 @@ def on_click(event):
 
     # Bruk samme feature-navn som under trening (unngå sklearn-advarsel)
     vektorer_df = pd.DataFrame({
-        'X':   np.full(12, x, dtype=float),
-        'Y':   np.full(12, y, dtype=float),
+        'X': np.full(12, x, dtype=float),
+        'Y': np.full(12, y, dtype=float),
         'Mnd': months
     })
     Xq = poly.transform(vektorer_df)  # nå uten advarsler
-    y_pred = model.predict(Xq)        # mm/mnd
+    y_pred = model.predict(Xq)  # mm/mnd
     aarsnedbor = float(np.sum(y_pred))
 
     # Venstre: bar-plott
@@ -303,23 +352,24 @@ def on_click(event):
     axGraph.set_title(f"Nedbør per måned – Årsnedbør ≈ {int(aarsnedbor)} mm", fontsize=10)
     axGraph.grid(axis='y', linestyle=':', alpha=0.35)
 
-    # Høyre: kart + blå markør (klikkpunkt)
+    # Høyre: kart + rød markør (klikkpunkt)
     tegn_kart()  # sørg for at zoom-skala brukes
     axMap.scatter([x], [y],
-                  c='#1E3A8A', s=520, marker='o', zorder=6,
-                  edgecolors='white', linewidths=1.2)  # mørkblå sirkel
+                  c='#D63031', s=520, marker='o', zorder=6,
+                  edgecolors='white', linewidths=1.2)  # rød sirkel
     t = axMap.text(x, y, label_from_nedbor(aarsnedbor), color='white',
                    fontsize=10, ha='center', va='center', zorder=6)
     t.set_path_effects([pe.withStroke(linewidth=1.8, foreground='black')])
-    axMap.set_title(f"C: ({x:.1f},{y:.1f}) – klikk blå = estimert", fontsize=10)
+    axMap.set_title(f"C: ({x:.1f},{y:.1f}) – klikk rød = estimert", fontsize=9)
 
     plt.draw()
+
 
 # ---------- STARTVISNING ----------
 draw_label_and_ticks()
 tegn_kart()
 
-# UI-elementer utenfor kartet, men "bitişik"
+# UI-elementer utenfor kartet, "
 map_pos = axMap.get_position()  # BBox i figur-koordinater (0..1)
 
 # Øverst-høyre: hjelpetekst
@@ -339,8 +389,11 @@ btn_y = map_pos.y0 - 0.065  # juster -0.065..-0.085 ved behov
 axBtn = fig.add_axes([btn_x, btn_y, btn_w, btn_h])
 btnReset = Button(axBtn, "Reset view", color="#f3f4f6", hovercolor="#e5e7eb")
 for sp in axBtn.spines.values():
-    sp.set_edgecolor("#9ca3af"); sp.set_linewidth(1)
-btnReset.label.set_fontsize(10); btnReset.label.set_color("#111")
+    sp.set_edgecolor("#9ca3af");
+    sp.set_linewidth(1)
+btnReset.label.set_fontsize(10);
+btnReset.label.set_color("#111")
+
 
 def reset_view(event=None):
     """Nullstill kart-utsnittet til start og tegn på nytt."""
@@ -348,6 +401,7 @@ def reset_view(event=None):
     axMap.set_ylim(y_min, y_max)
     tegn_kart()
     plt.draw()
+
 
 btnReset.on_clicked(reset_view)
 
