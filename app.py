@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 import os
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.patheffects as pe
 import matplotlib.gridspec as gridspec
 from matplotlib.widgets import Button
 
@@ -38,7 +40,10 @@ gs = gridspec.GridSpec(
     wspace=0.1
 )
 
-fig.subplots_adjust(left=0.01, right=0.985, top=0.92, bottom=0.10)
+fig.subplots_adjust(left=0.01,
+                    right=0.985,
+                    top=0.92,
+                    bottom=0.10)
 
 axLegend = fig.add_subplot(gs[0, 0])    # vertikal forklaringskolonne til venstre
 axSpacer = fig.add_subplot(gs[0, 1])    # ekte mellomrom mellom (aksel lukket)
@@ -69,22 +74,31 @@ def draw_label_and_ticks():
     axGraph.set_ylim(0, np.ceil(ymax / 20) * 20 + 10)
     axGraph.tick_params(axis='x', pad=2)
     axGraph.tick_params(axis='y', pad=2)
-    axGraph.grid(axis='y', linestyle=':', alpha=0.35)
+    axGraph.grid(axis='y',
+                 linestyle=':',
+                 alpha=0.35)
 
     # >>>  Plasser «mm»-merkelappen inni diagrammet, øverst til venstre
     axGraph.text(
         0.015, 0.985, "mm",
         transform=axGraph.transAxes,
-        ha="left", va="top",
-        fontsize=9, color="#111827",
-        bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.8)
+        ha="left",
+        va="top",
+        fontsize=9,
+        color="#111827",
+        bbox=dict(boxstyle="round,pad=0.15",
+                  fc="white",
+                  ec="none",
+                  alpha=0.8)
         )
 
 
 def draw_initial_views():
     render_vertical_legend(axLegend)
     tegn_kart(axMap, img, xr, yr, nedbor_aar, nedbor_mnd)
-    axGraph.set_title("Nedbør per måned ", fontsize=9)
+    axGraph.set_title("Nedbør per måned ",
+                      fontsize=9)
+
     draw_label_and_ticks()
 
 
@@ -127,7 +141,7 @@ def on_click(event):
         'Y': np.full(12, y, dtype=float),
         'Mnd': months
     }
-    import pandas as pd
+
     Xq = poly.transform(pd.DataFrame(df_query))
     y_pred = model.predict(Xq)
     aarsnedbor = float(np.sum(y_pred))
@@ -135,19 +149,74 @@ def on_click(event):
     # Left-bar chart
     axGraph.cla()
     bar_colors = [color_from_nedbor(v * 12.0) for v in y_pred]
-    axGraph.bar(months, y_pred, color=bar_colors, edgecolor='black', linewidth=0.6)
+    axGraph.bar(months, y_pred,
+                color=bar_colors,
+                edgecolor='black',
+                linewidth=0.6)
+
     draw_label_and_ticks()
-    axGraph.set_title(f"Nedbør per måned – Årsnedbør ≈ {int(aarsnedbor)} mm", fontsize=9)
-    axGraph.grid(axis='y', linestyle=':', alpha=0.35)
+
+    axGraph.set_title(f"Nedbør per måned – Årsnedbør ≈ {int(aarsnedbor)} mm",
+                      fontsize=9)
+
+    axGraph.grid(axis='y',
+                 linestyle=':',
+                 color='#bfbfbf',
+                 alpha=0.35)
+
+    # -----------------------------------------------------------------------------
+    # --- OPPGAVE 3:Rød linje + rutenett for årlig gjennomsnitt (månedlig) ---
+    #-----------------------------------------------------------------------------
+    mnd_gjsnitt = float(np.mean(y_pred))  # = aarsnedbor / 12
+
+    # Rød linje
+
+    axGraph.axhline(mnd_gjsnitt,
+                    color='#e60000',
+                    linewidth=1.8,
+                    linestyle='--',
+                    path_effects=[pe.withStroke(linewidth=2.5,
+                                                foreground='white')]
+                    )
+
+    # En kort tag:
+    axGraph.text(8.5, mnd_gjsnitt + 4,
+                 f"≈ {mnd_gjsnitt:.1f} mm/mnd",
+
+                 va='bottom',
+                 ha='left',
+                 fontsize=9,
+                 color='red',
+                 bbox=dict(boxstyle="round,pad=0.25",
+                           fc="white",
+                           ec="none",
+                           alpha=0.8))
+
+    # Grid for lesbarhet
+    axGraph.grid(True, axis='y',
+                 linestyle=':',
+                 alpha=0.4)
+    axGraph.minorticks_on()
 
     # Redraw map (keep zoom) + click marker
     tegn_kart(axMap, img, xr, yr, nedbor_aar, nedbor_mnd)
-    axMap.scatter([x], [y], c='#D63031', s=520, marker='o', zorder=6,
-                  edgecolors='white', linewidths=1.2)
-    t = axMap.text(x, y, label_from_nedbor(aarsnedbor), color='white',
-                   fontsize=10, ha='center', va='center', zorder=6)
+    axMap.scatter([x], [y], c='#D63031',
+                  s=520,
+                  marker='o',
+                  zorder=6,
+                  edgecolors='white',
+                  linewidths=1.2)
+
+    t = axMap.text(x, y, label_from_nedbor(aarsnedbor),
+                   color='white',
+                   fontsize=10,
+                   ha='center',
+                   va='center',
+                   zorder=6)
+
     t.set_path_effects(TEXT_STROKE)
-    axMap.set_title(f"C: ({x:.1f},{y:.1f}) – klikk rød = estimert", fontsize=9)
+    axMap.set_title(f"C: ({x:.1f},{y:.1f}) – klikk rød = estimert",
+                    fontsize=9)
 
     plt.draw()
 
@@ -156,15 +225,24 @@ def on_click(event):
 def add_ui():
     map_pos = axMap.get_position()
     fig.text(map_pos.x1, map_pos.y1 + 0.012, "Klikk på kartet for estimat",
-             ha="right", va="bottom", fontsize=8, color="#222",
-             bbox=dict(boxstyle="round,pad=0.25", fc="#f3f4f6", ec="#9ca3af", lw=1, alpha=0.95),
+             ha="right",
+             va="bottom",
+             fontsize=8,
+             color="#222",
+             bbox=dict(boxstyle="round,pad=0.25",
+                       fc="#f3f4f6",
+                       ec="#9ca3af",
+                       lw=1,
+                       alpha=0.95),
              zorder=10)
 
     btn_w, btn_h = 0.12, 0.06
     btn_x = map_pos.x1 - btn_w
     btn_y = map_pos.y0 - 0.065
     axBtn = fig.add_axes([btn_x, btn_y, btn_w, btn_h])
-    btn = Button(axBtn, "Reset view", color="#f3f4f6", hovercolor="#e5e7eb")
+    btn = Button(axBtn, "Reset view",
+                 color="#f3f4f6",
+                 hovercolor="#e5e7eb")
     for sp in axBtn.spines.values():
         sp.set_edgecolor("#9ca3af");
         sp.set_linewidth(1)

@@ -54,6 +54,7 @@ def size_from_nedbor_series(nedbor_array, min_size=700, max_size=1500):
     v_max = np.percentile(v, 95)
     if v_max <= v_min:
         return np.full_like(v, (min_size + max_size) * 0.5)
+
     s = (v - v_min) / (v_max - v_min)
     s = np.clip(s, 0, 1)
     return min_size + s * (max_size - min_size)
@@ -81,4 +82,5 @@ def regndraape_marker(width: float = 1.35, height: float = 0.72) -> MarkerStyle:
     return MarkerStyle(Path(verts, codes))
 
 # Text stroke utility (consistent across modules)
-TEXT_STROKE = [pe.withStroke(linewidth=1.6, foreground='black')]
+TEXT_STROKE = [pe.withStroke(linewidth=1.6,
+                             foreground='black')]

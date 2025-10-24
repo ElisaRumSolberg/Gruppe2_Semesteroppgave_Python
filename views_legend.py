@@ -21,12 +21,14 @@ def render_vertical_legend(ax):
         edgecolor="#0f172a",  # dark border
         linewidth=1.2,
         alpha=0.98,
-        transform=ax.transAxes, zorder=0
+        transform=ax.transAxes,
+        zorder=0
     )
     ax.add_patch(card)
 
     # subtle shadow
-    card.set_path_effects([pe.withSimplePatchShadow(offset=(1, -1), alpha=0.15)])
+    card.set_path_effects([pe.withSimplePatchShadow(offset=(1, -1),
+                                                    alpha=0.15)])
 
     # ---------- Section 1: størrelse (mm/mnd) ----------
     ax.text(0.08, 0.95, "Størrelse (mm/mnd)",
@@ -42,7 +44,8 @@ def render_vertical_legend(ax):
     yrow = [0.86, 0.78, 0.70]  # vertical positions
 
     for y, v, s in zip(yrow, vals, svals):
-        ax.scatter([0.20], [y], s=s,
+        ax.scatter([0.20], [y],
+                   s=s,
                    c="#6366F1",
                    marker=regndraape_marker(),
                    edgecolors='black',
